@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Portal Escolar Institucional - Colégio Horizonte</title>
+  <!-- Aplica o tema salvo antes da primeira pintura (evita piscar o tema claro) -->
+  <script>
+    try { document.documentElement.setAttribute('data-theme', JSON.parse(localStorage.getItem('petema')) || 'light'); } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Tela de autenticação (duas colunas) -->
+  <div id="authScreen" class="auth" hidden>
+    <aside class="auth-side">
+      <p class="auth-brand">Colégio Horizonte</p>
+      <div>
+        <h1>Portal Escolar<br>Institucional</h1>
+        <p class="auth-lead">Notas, frequência, diário de classe e material didático em um só lugar, para alunos, professores e coordenação.</p>
+      </div>
+      <p class="auth-year">Ano letivo 2026</p>
+    </aside>
+    <main class="auth-main">
+      <div class="auth-box">
+        <div class="auth-tools"><button type="button" class="btn btn-ghost js-theme" aria-label="Alternar tema"></button></div>
+        <div id="authContent"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Aplicação autenticada -->
+  <div id="appScreen" hidden>
+    <header class="topbar no-print">
+      <div class="wrap topbar-in">
+        <div class="topbar-id">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18"/></svg>
+          <div><p class="topbar-title">Colégio Horizonte</p><p class="topbar-user" id="userLabel"></p></div>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-ghost js-theme" aria-label="Alternar tema"></button>
+          <button type="button" class="btn btn-ghost" id="logoutBtn">Sair</button>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Menu principal"><div class="wrap nav-in" id="navBar"></div></nav>
+    </header>
+    <main class="wrap main" id="view"></main>
+  </div>
+
+  <!-- Modal genérico (leitor de e-book / livro do professor) -->
+  <div class="overlay no-print" id="modal" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <header class="dialog-head">
+        <div><p id="mTitle" class="dialog-title"></p><p id="mSub" class="dialog-sub"></p></div>
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-ghost" id="mPdf">Baixar PDF</button>
+          <button type="button" class="icon-btn" id="mClose" aria-label="Fechar">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="progress"><div id="mBar"></div></div>
+      <div class="dialog-body" id="mBody"></div>
+      <footer class="dialog-foot" id="mFoot"></footer>
+    </div>
+  </div>
+
+  <footer class="site-footer no-print">© 2026 Colégio Horizonte. Todos os direitos reservados.</footer>
+  <script src="script.js"></script>
+</body>
+</html>
