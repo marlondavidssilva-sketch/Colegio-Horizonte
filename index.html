@@ -5,26 +5,79 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>Portal Escolar Institucional - Colégio Horizonte</title>
-  <!-- Aplica o tema salvo antes da primeira pintura (evita piscar o tema claro) -->
+  <!-- Recupera o tema salvo antes de mostrar a página. -->
   <script>
-    try { document.documentElement.setAttribute('data-theme', JSON.parse(localStorage.getItem('petema')) || 'light'); } catch (e) {}
+    try {
+      // Login e cadastro ficam sempre claros; o tema salvo volta ao entrar no painel.
+      const sessaoSalva = JSON.parse(localStorage.getItem('pesessao'));
+      const temaSalvo = JSON.parse(localStorage.getItem('petema'));
+      document.documentElement.setAttribute('data-theme', sessaoSalva ? (temaSalvo || 'light') : 'light');
+    } catch (e) {}
   </script>
+  <!-- Endereço corrigido: jsPDF 2.5.1. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Gerador com escolha automática da versão pelo conteúdo real em UTF-8. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script>
+    // Compatibilidade com inserirQRCarteirinha() do script.js existente.
+    // Mantém new QRCode(...), mas não usa o gerador antigo que causava overflow.
+    (function () {
+      if (typeof window.qrcode !== 'function') return;
+      window.qrcode.stringToBytes = function (texto) {
+        return Array.from(new TextEncoder().encode(texto));
+      };
+      function QRCode(alvo, opcoes) {
+        if (typeof alvo === 'string') alvo = document.getElementById(alvo);
+        if (!alvo) throw new Error('Área do QR Code não encontrada.');
+        opcoes = typeof opcoes === 'string' ? {text: opcoes} : (opcoes || {});
+        var niveis = {0:'M', 1:'L', 2:'H', 3:'Q'};
+        var nivel = typeof opcoes.correctLevel === 'string'
+          ? opcoes.correctLevel : (niveis[opcoes.correctLevel] || 'M');
+        var qr = window.qrcode(0, nivel); // 0 = dimensionamento automático
+        qr.addData(String(opcoes.text || ''), 'Byte');
+        qr.make();
+        var modulos = qr.getModuleCount();
+        var borda = 4; // margem branca de quatro módulos em todos os lados
+        var tamanho = Math.max(opcoes.width || 408, opcoes.height || 408);
+        var passo = Math.max(1, Math.ceil(tamanho / (modulos + borda * 2)));
+        var canvas = document.createElement('canvas');
+        canvas.width = canvas.height = (modulos + borda * 2) * passo;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = opcoes.colorLight || '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = opcoes.colorDark || '#000000';
+        for (var linha = 0; linha < modulos; linha++) {
+          for (var coluna = 0; coluna < modulos; coluna++) {
+            if (qr.isDark(linha, coluna)) {
+              ctx.fillRect((coluna + borda) * passo, (linha + borda) * passo, passo, passo);
+            }
+          }
+        }
+        var imagem = document.createElement('img');
+        imagem.alt = 'QR Code com os dados da carteirinha';
+        imagem.width = opcoes.width || 408;
+        imagem.height = opcoes.height || 408;
+        imagem.src = canvas.toDataURL('image/png');
+        alvo.appendChild(imagem);
+      }
+      QRCode.CorrectLevel = {L:1, M:0, Q:3, H:2};
+      window.QRCode = QRCode;
+    })();
+  </script>
+
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-  <!-- Tela de autenticação (duas colunas) -->
+  <!-- Login e cadastro -->
   <div id="authScreen" class="auth" hidden>
-    <aside class="auth-side">
-      <p class="auth-brand">Colégio Horizonte</p>
-      <div>
-        <h1>Portal Escolar<br>Institucional</h1>
-        <p class="auth-lead">Notas, frequência, diário de classe e material didático em um só lugar, para alunos, professores e coordenação.</p>
-      </div>
-      <p class="auth-year">Ano letivo 2026</p>
+    <aside class="auth-side" aria-label="Colégio Horizonte">
+      <img class="auth-school-logo" src="logo-completa.png" width="855" height="248" alt="Colégio Horizonte">
     </aside>
     <main class="auth-main">
       <div class="auth-box">
-        <div class="auth-tools"><button type="button" class="btn btn-ghost js-theme" aria-label="Alternar tema"></button></div>
         <div id="authContent"></div>
       </div>
     </main>
@@ -35,8 +88,8 @@
     <header class="topbar no-print">
       <div class="wrap topbar-in">
         <div class="topbar-id">
-          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18"/></svg>
-          <div><p class="topbar-title">Colégio Horizonte</p><p class="topbar-user" id="userLabel"></p></div>
+          <img class="topbar-logo" src="logo-simbolo.png" width="305" height="244" alt="Colégio Horizonte">
+          <p class="topbar-user" id="userLabel"></p>
         </div>
         <div class="topbar-actions">
           <button type="button" class="btn btn-ghost js-theme" aria-label="Alternar tema"></button>
@@ -48,7 +101,7 @@
     <main class="wrap main" id="view"></main>
   </div>
 
-  <!-- Modal genérico (leitor de e-book / livro do professor) -->
+  <!-- Leitor de livros -->
   <div class="overlay no-print" id="modal" hidden>
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
       <header class="dialog-head">
@@ -56,7 +109,7 @@
         <div class="dialog-actions">
           <button type="button" class="btn btn-ghost" id="mPdf">Baixar PDF</button>
           <button type="button" class="icon-btn" id="mClose" aria-label="Fechar">
-            <svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
       </header>
@@ -66,7 +119,7 @@
     </div>
   </div>
 
-  <footer class="site-footer no-print">© 2026 Colégio Horizonte. Todos os direitos reservados.</footer>
+  <footer class="site-footer no-print" hidden>© 2026 Colégio Horizonte. Todos os direitos reservados.</footer>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,8 +1,6 @@
 /* =====================================================================
    Portal Escolar Institucional - Colégio Horizonte
-   Seções: 1 Dados base | 2 Armazenamento | 3 Cálculos | 4 Utilitários
-           5 Tema | 6 Gráficos (canvas) | 7 Modal e leitor | 8 PDF
-           9 Autenticação | 10 Telas | 11 Rotas e inicialização
+   script.js completo - Parte 1 de 4: dados base, armazenamento e cálculos
    ===================================================================== */
 'use strict';
 
@@ -18,152 +16,44 @@ const PERFIS = {
   coordenador: { rotulo: 'Coordenador', usuario: 'coordenador' }
 };
 
-// Disciplinas: dados de cadastro (livro adotado, autor, aulas, cor e ícone da capa, nomes dos capítulos).
-// O TEXTO dos livros fica em CONTEUDO (abaixo): fonte única do visualizador e do PDF.
 const DISC = [
   { nome: 'Língua Portuguesa', aulas: 160, cor: '#1e3a8a', livro: 'Português: Linguagens', autor: 'William Cereja e Thereza Cochar',
     icone: 'M8 12c8-4 16-4 24 2 8-6 16-6 24-2v38c-8-4-16-4-24 2-8-6-16-6-24-2zM32 14v38',
-    caps: ['Interpretação de textos', 'Morfologia e sintaxe', 'Literatura brasileira'] },
+    caps: ['Interpretação de textos', 'Morfologia e sintaxe', 'Literatura brasileira'],
+    texto: ['Interpretar um texto é ir além das palavras: é reconhecer o que o autor diz de forma explícita e o que sugere nas entrelinhas. Observamos o gênero, o público e a finalidade do texto.', 'Uma boa leitura começa antes do primeiro parágrafo: título, imagens e fonte já oferecem pistas sobre o assunto.'],
+    dest: ['Dica de leitura', 'Releia a pergunta da questão antes de voltar ao texto. A resposta deve estar apoiada no texto, e não na sua opinião.'] },
   { nome: 'Matemática', aulas: 160, cor: '#334155', livro: 'Matemática: Contexto & Aplicações', autor: 'Luiz Roberto Dante',
     icone: 'M10 52V12l44 40zM10 38a14 14 0 0 1 14 14',
-    caps: ['Funções', 'Trigonometria', 'Geometria espacial'] },
+    caps: ['Funções', 'Trigonometria', 'Geometria espacial'],
+    texto: ['Uma função relaciona cada elemento de um conjunto A a um único elemento de um conjunto B. Escrevemos y = f(x), em que x é a variável independente e y depende de x.', 'A função afim tem a forma f(x) = ax + b. O coeficiente a indica a inclinação da reta e b mostra onde ela corta o eixo y.'],
+    dest: ['Exemplo resolvido', 'Em f(x) = 2x + 3, temos f(4) = 2 · 4 + 3 = 11.'] },
   { nome: 'Biologia', aulas: 80, cor: '#155e75', livro: 'Biologia Hoje', autor: 'Sérgio Linhares e Fernando Gewandsznajder',
     icone: 'M12 52C12 26 26 12 54 12c0 28-14 42-38 42M12 52L38 26',
-    caps: ['Citologia', 'Genética', 'Ecologia'] },
+    caps: ['Citologia', 'Genética', 'Ecologia'],
+    texto: ['A célula é a unidade básica da vida. Todos os seres vivos são formados por uma ou mais células, que obtêm energia, crescem e se reproduzem.', 'Nas células procariontes, o material genético fica solto no citoplasma. Nas eucariontes, ele está protegido no núcleo.'],
+    dest: ['Você sabia?', 'As mitocôndrias produzem a maior parte da energia usada pelas células eucariontes.'] },
   { nome: 'História', aulas: 80, cor: '#475569', livro: 'História: Sociedade & Cidadania', autor: 'Alfredo Boulos Júnior',
     icone: 'M8 22L32 8l24 14zM14 26v22M26 26v22M38 26v22M50 26v22M8 52h48',
-    caps: ['Brasil Colônia', 'Revolução Industrial', 'República brasileira'] },
+    caps: ['Brasil Colônia', 'Revolução Industrial', 'República brasileira'],
+    texto: ['Em 1500, a chegada dos portugueses ao território que hoje é o Brasil iniciou um longo processo de ocupação e exploração. Nas primeiras décadas, a principal atividade foi a extração do pau-brasil.', 'A partir da década de 1530, com as capitanias hereditárias e a cana-de-açúcar, a colonização tornou-se mais permanente e passou a depender do trabalho escravizado.'],
+    dest: ['Para refletir', 'De que modo a economia açucareira moldou a sociedade colonial?'] },
   { nome: 'Geografia', aulas: 80, cor: '#1d4ed8', livro: 'Geografia Geral e do Brasil', autor: 'José William Vesentini',
     icone: 'M10 32a22 22 0 1 0 44 0a22 22 0 1 0-44 0M32 10c-12 8-12 36 0 44 12-8 12-36 0-44M10 32h44M14 20h36M14 44h36',
-    caps: ['Cartografia', 'Geopolítica', 'Meio ambiente'] },
+    caps: ['Cartografia', 'Geopolítica', 'Meio ambiente'],
+    texto: ['Mapas são representações reduzidas e simplificadas da superfície terrestre. Para lê-los, observamos título, legenda e escala.', 'A escala mostra quantas vezes o espaço real foi reduzido. Em 1:100.000, 1 cm no mapa corresponde a 1 km na realidade.'],
+    dest: ['Atenção', 'Quanto menor o número depois dos dois pontos, maior a escala e mais detalhes o mapa mostra.'] },
   { nome: 'Língua Inglesa', aulas: 80, cor: '#1e40af', livro: 'Alive High', autor: 'Kátia Tavares e Claudio Franco',
     icone: 'M10 14h44v28H30L18 54V42h-8zM20 24h24M20 32h16',
-    caps: ['Simple Present', 'Reading comprehension', 'Phrasal verbs'] },
+    caps: ['Simple Present', 'Reading comprehension', 'Phrasal verbs'],
+    texto: ['O Simple Present expressa hábitos, rotinas e fatos gerais. Na terceira pessoa do singular (he, she, it), o verbo recebe -s ou -es: she studies, he watches.', 'Para perguntar e negar, usamos o auxiliar do/does: Does she study every day? She does not (doesn\'t) study at night.'],
+    dest: ['Remember', 'Com does, o verbo principal volta à forma base: Does he work?'] },
   { nome: 'Física', aulas: 80, cor: '#0f172a', livro: 'Os Fundamentos da Física', autor: 'Francisco Ramalho Jr., Nicolau Ferraro e Paulo Toledo',
     icone: 'M32 28a4 4 0 1 0 0 8a4 4 0 1 0 0-8M8 32c0-5 11-9 24-9s24 4 24 9-11 9-24 9-24-4-24-9z',
-    caps: ['Cinemática', 'Leis de Newton', 'Energia e trabalho'] }
+    caps: ['Cinemática', 'Leis de Newton', 'Energia e trabalho'],
+    texto: ['A cinemática descreve o movimento dos corpos sem se preocupar com suas causas. As grandezas básicas são posição, tempo, velocidade e aceleração.', 'No movimento retilíneo uniforme (MRU), a velocidade é constante e a posição varia segundo s = s0 + v · t.'],
+    dest: ['Exemplo', 'Um carro a 20 m/s percorre 100 m em 5 s, pois 20 · 5 = 100.'] }
 ];
 const NOME_CURTO = n => n.replace('Língua ', '');
-
-/* Conteúdo de cada livro. Estrutura por disciplina:
-   intro: parágrafos da introdução
-   caps[k].t = parágrafos de conceitos | .d = [título, texto] do destaque
-   caps[k].p = 3 questões da prática guiada | .e = [questão, resposta] do exercício final
-   ATENÇÃO: texto redigido como material de apoio; revise antes de adotar oficialmente. */
-const CONTEUDO = {
-  'Língua Portuguesa': {
-    intro: ['A língua portuguesa é o principal instrumento para compreender o mundo e se expressar nele. Neste livro, você vai treinar três habilidades centrais do Ensino Médio: interpretar textos, reconhecer a estrutura das palavras e das frases, e conhecer a produção literária brasileira.', 'Leia cada capítulo com atenção, resolva a prática guiada e confira suas respostas no gabarito comentado da última página.'],
-    caps: [
-      { t: ['Interpretar um texto é ir além das palavras: é reconhecer o que o autor diz de forma explícita e o que sugere nas entrelinhas. Para isso, observamos o gênero, o público a quem o texto se dirige e a finalidade (informar, convencer, divertir ou instruir).', 'Antes do primeiro parágrafo, título, imagens e fonte já oferecem pistas sobre o assunto. Durante a leitura, vale identificar a tese (a ideia central), os argumentos que a sustentam e as palavras que revelam a opinião de quem escreve.', 'Distinguimos informação explícita, que está escrita, de inferência, que construímos a partir de pistas do texto. Toda inferência precisa de apoio no texto: sem pista, é apenas suposição.'],
-        d: ['Dica de leitura', 'Releia a pergunta da questão antes de voltar ao texto. A resposta deve estar apoiada no texto, e não na sua opinião.'],
-        p: ['Leia uma notícia e escreva, em uma frase, a ideia central.', 'Separe duas informações explícitas e uma inferência do mesmo texto.', 'Identifique a finalidade do texto: informar, convencer ou instruir?'],
-        e: ['Qual é a diferença entre informação explícita e inferência?', 'Informação explícita está escrita no texto; inferência é uma conclusão construída a partir de pistas do texto, sem estar dita literalmente.'] },
-      { t: ['A morfologia estuda a estrutura e a classificação das palavras: substantivo, adjetivo, verbo, advérbio, pronome, artigo, numeral, preposição, conjunção e interjeição. Cada classe cumpre uma função na frase.', 'A sintaxe estuda como as palavras se combinam em orações. O verbo é o centro da oração; em torno dele aparecem o sujeito, aquele de quem se declara algo, e o predicado, o que se declara sobre o sujeito.', 'Os complementos do verbo completam seu sentido: o objeto direto liga-se sem preposição obrigatória (Comprei livros) e o objeto indireto exige preposição (Gosto de música).'],
-        d: ['Atenção', 'Para achar o sujeito, pergunte ao verbo: quem pratica ou sofre a ação? O sujeito concorda com o verbo em número e pessoa.'],
-        p: ['Classifique as palavras da frase "Os alunos leram o livro rapidamente".', 'Identifique sujeito e predicado em "Chegaram ontem os convidados".', 'Escreva uma frase com objeto direto e outra com objeto indireto.'],
-        e: ['Em "O professor corrigiu as provas", qual é o objeto direto?', '"As provas": completa o sentido do verbo "corrigiu" sem preposição.'] },
-      { t: ['A literatura brasileira costuma ser estudada por escolas literárias. No Quinhentismo (século XVI), os textos descrevem a terra recém-chegada aos portugueses. O Barroco (século XVII) exprime o conflito entre fé e prazer, com Gregório de Matos.', 'O Arcadismo (século XVIII) valoriza a vida simples e a natureza. O Romantismo (século XIX) destaca a emoção, o nacionalismo e a idealização, com Gonçalves Dias e José de Alencar. O Realismo, com Machado de Assis, analisa a sociedade com olhar crítico.', 'No século XX, o Modernismo rompe com regras antigas e valoriza a língua falada e os temas nacionais, a partir da Semana de Arte Moderna de 1922. Entre seus nomes estão Mário de Andrade, Carlos Drummond de Andrade e Clarice Lispector.'],
-        d: ['Para refletir', 'Por que cada escola literária reflete a época em que foi produzida?'],
-        p: ['Relacione cada escola literária à sua época.', 'Pesquise um autor modernista e resuma sua obra em três linhas.', 'Explique por que a Semana de 1922 é considerada um marco.'],
-        e: ['Cite duas características do Romantismo brasileiro.', 'Valorização da emoção e da subjetividade e nacionalismo, com a natureza e o indígena como símbolos do país.'] }
-    ] },
-  'Matemática': {
-    intro: ['A matemática organiza o raciocínio e permite descrever fenômenos do cotidiano, da economia e da ciência. Neste livro, você estuda funções, trigonometria e geometria espacial.', 'Resolva os exercícios com lápis e papel, conferindo cada passo. Errar faz parte do aprendizado: o importante é entender onde o raciocínio mudou.'],
-    caps: [
-      { t: ['Uma função relaciona cada elemento de um conjunto A a um único elemento de um conjunto B. Escrevemos y = f(x), em que x é a variável independente e y depende de x.', 'A função afim tem a forma f(x) = ax + b. O coeficiente a indica a inclinação da reta (crescente se a > 0, decrescente se a < 0) e b mostra onde ela corta o eixo y.', 'A função quadrática tem a forma f(x) = ax² + bx + c, com a ≠ 0. Seu gráfico é uma parábola, com concavidade para cima se a > 0 e para baixo se a < 0. As raízes saem de x = (-b ± √Δ) / 2a, com Δ = b² - 4ac.'],
-        d: ['Exemplo resolvido', 'Em f(x) = 2x + 3, temos f(4) = 2 · 4 + 3 = 11.'],
-        p: ['Calcule f(0) e f(2) para f(x) = 3x - 1.', 'Diga se f(x) = -2x + 5 é crescente ou decrescente.', 'Calcule o valor de Δ em x² - 5x + 6 = 0.'],
-        e: ['Quais são as raízes de x² - 5x + 6 = 0?', 'Δ = 25 - 24 = 1; x = (5 ± 1) / 2, logo x = 3 ou x = 2.'] },
-      { t: ['No triângulo retângulo, as razões trigonométricas relacionam ângulos e lados. Em relação a um ângulo agudo: seno = cateto oposto / hipotenusa, cosseno = cateto adjacente / hipotenusa e tangente = cateto oposto / cateto adjacente.', 'Alguns valores são frequentes: sen 30° = 1/2, cos 60° = 1/2, sen 45° = cos 45° = √2/2, sen 60° = cos 30° = √3/2 e tg 45° = 1.', 'A relação fundamental é sen²x + cos²x = 1. Ela vale para qualquer ângulo e permite achar o cosseno quando se conhece o seno.'],
-        d: ['Lembre-se', 'A hipotenusa é sempre o maior lado do triângulo retângulo: é o lado oposto ao ângulo reto.'],
-        p: ['Em um triângulo retângulo de hipotenusa 10 e cateto oposto 5, calcule o seno do ângulo.', 'Use a relação fundamental para achar cos x se sen x = 0,6, com x agudo.', 'Calcule tg 45° + sen 30°.'],
-        e: ['Se sen x = 0,6 e x é agudo, quanto vale cos x?', 'sen²x + cos²x = 1, logo cos²x = 1 - 0,36 = 0,64 e cos x = 0,8.'] },
-      { t: ['A geometria espacial estuda os sólidos no espaço. O prisma tem duas bases paralelas e congruentes; o cilindro tem bases circulares; a pirâmide tem uma base e um vértice; o cone tem base circular; a esfera reúne os pontos à mesma distância de um centro.', 'O volume de um prisma ou de um cilindro é a área da base vezes a altura: V = Ab · h. No cilindro, Ab = πr², então V = πr²h.', 'Para pirâmide e cone, o volume é um terço do produto da área da base pela altura: V = (1/3) · Ab · h. Para a esfera, V = (4/3)πr³.'],
-        d: ['Exemplo', 'Um cubo de aresta 3 cm tem volume 3 · 3 · 3 = 27 cm³.'],
-        p: ['Calcule o volume de um cilindro com r = 2 cm e h = 5 cm (em função de π).', 'Calcule o volume de uma pirâmide de base 6 cm² e altura 4 cm.', 'Calcule o volume de uma esfera de raio 3 cm (em função de π).'],
-        e: ['Qual é o volume de um cubo de aresta 4 cm?', 'V = 4 · 4 · 4 = 64 cm³.'] }
-    ] },
-  'Biologia': {
-    intro: ['A biologia estuda a vida em todas as suas formas e níveis de organização, da molécula ao planeta. Neste livro você vê as células, a transmissão das características hereditárias e as relações entre os seres vivos e o ambiente.', 'Relacione sempre o conteúdo com exemplos do dia a dia, como alimentação, saúde e meio ambiente.'],
-    caps: [
-      { t: ['A célula é a unidade básica da vida. Todos os seres vivos são formados por uma ou mais células, que obtêm energia, crescem e se reproduzem.', 'Nas células procariontes (como as bactérias), o material genético fica disperso no citoplasma. Nas eucariontes (animais, plantas, fungos e protistas), ele está protegido no núcleo, e existem organelas como as mitocôndrias.', 'A membrana plasmática controla a entrada e a saída de substâncias. As células vegetais têm ainda parede celular, cloroplastos, onde ocorre a fotossíntese, e grandes vacúolos.'],
-        d: ['Você sabia?', 'As mitocôndrias produzem a maior parte da energia usada pelas células eucariontes.'],
-        p: ['Liste duas diferenças entre célula procarionte e eucarionte.', 'Qual organela realiza a fotossíntese?', 'Cite uma função da membrana plasmática.'],
-        e: ['Onde fica o material genético numa célula eucarionte?', 'No núcleo, delimitado pelo envoltório nuclear.'] },
-      { t: ['A genética estuda a transmissão das características hereditárias. Gregor Mendel, trabalhando com ervilhas, propôs que cada característica é determinada por fatores (hoje chamados de genes), que se separam na formação dos gametas.', 'Cada indivíduo herda um alelo de cada genitor. O alelo dominante se manifesta mesmo em dose única; o recessivo só aparece em dose dupla. Indivíduos AA e Aa têm o mesmo fenótipo, mas genótipos diferentes.', 'O quadro de Punnett organiza os cruzamentos. No cruzamento Aa × Aa, esperam-se 25% AA, 50% Aa e 25% aa, ou seja, três indivíduos com o fenótipo dominante para um com o recessivo.'],
-        d: ['Atenção', 'Genótipo é o conjunto de alelos; fenótipo é a característica observada.'],
-        p: ['Qual é o genótipo de um indivíduo homozigoto recessivo?', 'No cruzamento Aa × Aa, qual a probabilidade de nascer aa?', 'Diferencie genótipo de fenótipo.'],
-        e: ['No cruzamento Aa × Aa, qual a proporção fenotípica esperada?', 'Três indivíduos com o fenótipo dominante para um com o recessivo (3:1).'] },
-      { t: ['A ecologia estuda as relações entre os seres vivos e o ambiente. Uma população é o conjunto de indivíduos da mesma espécie em um local; a comunidade reúne todas as populações; o ecossistema inclui também os fatores abióticos, como luz, água e solo.', 'Nas cadeias alimentares, os produtores (plantas e algas) fabricam alimento, os consumidores se alimentam de outros seres e os decompositores reciclam a matéria orgânica. A energia diminui a cada nível, por isso há menos carnívoros do que herbívoros.', 'As atividades humanas, como desmatamento, queimadas e poluição, alteram os ecossistemas e reduzem a biodiversidade. A sustentabilidade busca atender às necessidades atuais sem comprometer as das gerações futuras.'],
-        d: ['Para refletir', 'Que ações do seu bairro ajudam a proteger o ambiente?'],
-        p: ['Monte uma cadeia alimentar com quatro seres vivos.', 'Qual é o papel dos decompositores?', 'Diferencie população de comunidade.'],
-        e: ['Por que há menos carnívoros do que herbívoros em um ecossistema?', 'Porque a energia diminui a cada nível da cadeia; sobra menos energia para sustentar os níveis mais altos.'] }
-    ] },
-  'História': {
-    intro: ['A história estuda as ações humanas no tempo e ajuda a entender o presente. Neste livro, você vê o Brasil Colônia, a Revolução Industrial e a República brasileira.', 'Ao ler, procure sempre relacionar causas e consequências e perceber quem produziu cada documento e com que interesse.'],
-    caps: [
-      { t: ['Em 1500, a chegada dos portugueses ao território que hoje é o Brasil iniciou um longo processo de ocupação e exploração. Nas primeiras décadas, a principal atividade foi a extração do pau-brasil.', 'A partir da década de 1530, com as capitanias hereditárias e a cana-de-açúcar, a colonização tornou-se mais permanente e passou a depender do trabalho escravizado de africanos.', 'No século XVIII, a descoberta de ouro em Minas Gerais deslocou o centro econômico para o Sudeste e intensificou a cobrança de impostos pela Coroa, como o quinto.'],
-        d: ['Para refletir', 'De que modo a economia açucareira moldou a sociedade colonial?'],
-        p: ['Por que o pau-brasil foi explorado primeiro?', 'Qual era a base do trabalho na lavoura canavieira?', 'O que foi o quinto cobrado sobre o ouro?'],
-        e: ['Qual foi o primeiro produto explorado pelos portugueses no Brasil?', 'O pau-brasil, madeira da qual se extraía um corante.'] },
-      { t: ['A Revolução Industrial começou na Inglaterra, na segunda metade do século XVIII. Ela substituiu a produção artesanal pela produção em fábricas, com o uso de máquinas.', 'A máquina a vapor, aperfeiçoada por James Watt, impulsionou a indústria têxtil e as minas de carvão e, depois, as ferrovias e os navios a vapor.', 'A industrialização provocou urbanização acelerada e a formação da classe operária, com jornadas longas e baixos salários. As reivindicações dos trabalhadores deram origem aos sindicatos e a leis trabalhistas.'],
-        d: ['Você sabia?', 'A Inglaterra reunia carvão, capital acumulado e mercado consumidor, fatores que favoreceram a industrialização.'],
-        p: ['O que mudou ao passar do artesanato para a fábrica?', 'Qual invenção ampliou o uso do vapor na indústria?', 'Cite uma consequência social da industrialização.'],
-        e: ['Onde e quando começou a Revolução Industrial?', 'Na Inglaterra, na segunda metade do século XVIII.'] },
-      { t: ['A República foi proclamada em 15 de novembro de 1889, após a queda do Império. Seguiram-se a República da Espada (governos militares) e a República Oligárquica, dominada pelos fazendeiros de São Paulo e Minas Gerais.', 'A Revolução de 1930 levou Getúlio Vargas ao poder. Seu governo trouxe a legislação trabalhista, consolidada na CLT em 1943, e o Estado Novo (1937 a 1945), período autoritário.', 'Depois de governos democráticos, o golpe de 1964 iniciou a ditadura militar, que durou até 1985. A Constituição de 1988 restabeleceu direitos e consolidou a democracia.'],
-        d: ['Atenção', 'A expressão República Velha refere-se ao período de 1889 a 1930.'],
-        p: ['Em que data foi proclamada a República?', 'O que foi a Revolução de 1930?', 'Qual documento de 1988 consolidou a democracia?'],
-        e: ['Quando terminou a ditadura militar no Brasil?', 'Em 1985, com a volta de um presidente civil ao poder.'] }
-    ] },
-  'Geografia': {
-    intro: ['A geografia estuda como as sociedades ocupam e transformam o espaço. Neste livro você aprende a ler mapas, entender a ordem mundial e discutir questões ambientais.', 'Use mapas, gráficos e notícias atuais para relacionar o conteúdo ao que acontece no mundo.'],
-    caps: [
-      { t: ['Mapas são representações reduzidas e simplificadas da superfície terrestre. Para lê-los, observamos título, legenda, orientação e escala.', 'A escala mostra quantas vezes o espaço real foi reduzido. Em 1:100.000, 1 cm no mapa corresponde a 100.000 cm, ou seja, 1 km na realidade.', 'As coordenadas geográficas localizam qualquer ponto: a latitude mede a distância ao Equador (para o norte ou para o sul) e a longitude, a distância ao Meridiano de Greenwich (para leste ou oeste).'],
-        d: ['Atenção', 'Quanto menor o número depois dos dois pontos, maior a escala e mais detalhes o mapa mostra.'],
-        p: ['Explique o que significa a escala 1:50.000.', 'Qual linha divide a Terra em hemisfério norte e hemisfério sul?', 'Para que serve a legenda de um mapa?'],
-        e: ['Em um mapa na escala 1:100.000, a quantos quilômetros reais correspondem 3 cm?', '3 cm × 100.000 = 300.000 cm = 3 km.'] },
-      { t: ['A geopolítica analisa como o poder se distribui entre os países e como o espaço geográfico influencia as relações internacionais.', 'Entre 1945 e 1991, a Guerra Fria opôs os Estados Unidos (capitalismo) e a União Soviética (socialismo), sem confronto direto entre eles, mas com disputas indiretas pelo mundo. A queda do Muro de Berlim (1989) e o fim da URSS (1991) encerraram esse período.', 'Hoje a ordem mundial é multipolar: além dos Estados Unidos, destacam-se a China, a União Europeia e outros blocos. Organizações como a ONU e blocos econômicos, como o Mercosul, orientam a cooperação entre os países.'],
-        d: ['Você sabia?', 'O Mercosul foi criado em 1991 e reúne países da América do Sul para facilitar o comércio.'],
-        p: ['Quais países lideraram os dois blocos da Guerra Fria?', 'O que significa uma ordem mundial multipolar?', 'Cite um bloco econômico do qual o Brasil faz parte.'],
-        e: ['Que acontecimentos marcam o fim da Guerra Fria?', 'A queda do Muro de Berlim (1989) e o fim da União Soviética (1991).'] },
-      { t: ['Os recursos naturais são usados para produzir bens, mas muitos são finitos ou se renovam lentamente. O uso excessivo causa desmatamento, poluição da água e do ar e perda de biodiversidade.', 'O efeito estufa é um fenômeno natural que mantém a Terra aquecida. A emissão excessiva de gases como o dióxido de carbono, pela queima de combustíveis fósseis, intensifica o fenômeno e contribui para o aquecimento global.', 'O desenvolvimento sustentável procura conciliar crescimento econômico, justiça social e preservação ambiental. Reciclagem, energias renováveis e consumo consciente são exemplos de ações.'],
-        d: ['Para refletir', 'Que mudanças no seu consumo ajudariam a reduzir o lixo?'],
-        p: ['Diferencie recurso renovável de recurso não renovável.', 'Qual gás é associado à intensificação do efeito estufa?', 'Cite duas fontes de energia renovável.'],
-        e: ['O efeito estufa é sempre prejudicial?', 'Não. É um fenômeno natural que mantém a temperatura adequada à vida; o problema é a sua intensificação pelos gases emitidos pelas atividades humanas.'] }
-    ] },
-  'Língua Inglesa': {
-    intro: ['O inglês é uma língua de comunicação internacional, presente na ciência, na tecnologia e nas redes. Neste livro você revisa o Simple Present, estratégias de leitura e verbos frasais (phrasal verbs).', 'Leia os exemplos em voz alta e crie as suas próprias frases.'],
-    caps: [
-      { t: ['O Simple Present expressa hábitos, rotinas e fatos gerais. Na terceira pessoa do singular (he, she, it), o verbo recebe -s ou -es: she studies, he watches.', 'Para perguntar e negar, usamos o auxiliar do/does: Does she study every day? She does not (doesn\'t) study at night.', 'Advérbios de frequência, como always, usually, often, sometimes e never, costumam vir antes do verbo principal: They usually walk to school.'],
-        d: ['Remember', 'Com does, o verbo principal volta à forma base: Does he work?'],
-        p: ['Passe para a terceira pessoa: "I play football."', 'Escreva a forma negativa: "She likes coffee."', 'Escreva uma pergunta com "Does".'],
-        e: ['Complete: "He ___ (watch) TV every night."', 'watches. Verbos terminados em -ch recebem -es na terceira pessoa.'] },
-      { t: ['Reading comprehension é a capacidade de entender textos em inglês. Mesmo sem conhecer todas as palavras, é possível compreender a ideia geral com estratégias de leitura.', 'Skimming é a leitura rápida para captar o assunto geral, observando título, imagens e primeiras frases. Scanning é a busca por uma informação específica, como uma data ou um nome.', 'Palavras cognatas, parecidas com o português (family, important, information), ajudam bastante. Fique atento aos falsos cognatos, como library, que significa biblioteca, e não livraria.'],
-        d: ['Dica', 'Leia as perguntas antes do texto para saber o que procurar.'],
-        p: ['Explique a diferença entre skimming e scanning.', 'Cite dois cognatos em inglês.', 'Qual é o significado de "library"?'],
-        e: ['O que significa a palavra "library"?', 'Biblioteca. É um falso cognato: livraria, em inglês, é "bookstore".'] },
-      { t: ['Phrasal verbs são combinações de um verbo com uma preposição ou um advérbio que formam um novo significado. Exemplos: look for (procurar), give up (desistir) e turn on (ligar).', 'Muitos phrasal verbs não podem ser entendidos palavra por palavra: get up significa levantar-se, e não "obter para cima".', 'Alguns são separáveis: turn the light off e turn off the light são corretos. Quando o objeto é um pronome, ele vai no meio: turn it off.'],
-        d: ['Atenção', 'Aprenda os phrasal verbs em frases completas, e não isolados.'],
-        p: ['Traduza: "I look for my keys."', 'Reescreva "turn off the TV" usando o pronome "it".', 'Use "give up" em uma frase.'],
-        e: ['Qual é o significado de "give up"?', 'Desistir.'] }
-    ] },
-  'Física': {
-    intro: ['A física busca explicar fenômenos naturais por meio de leis e modelos matemáticos. Neste livro, você estuda o movimento, as suas causas e a energia.', 'Faça sempre um esquema do problema e confira as unidades antes de calcular.'],
-    caps: [
-      { t: ['A cinemática descreve o movimento dos corpos sem se preocupar com suas causas. As grandezas básicas são posição, tempo, velocidade e aceleração.', 'A velocidade média é a variação da posição dividida pelo intervalo de tempo: v = Δs / Δt. No Sistema Internacional, é medida em metros por segundo (m/s); para converter km/h em m/s, divide-se por 3,6.', 'No movimento retilíneo uniforme (MRU), a velocidade é constante e a posição varia segundo s = s0 + v · t. No movimento uniformemente variado (MUV), a aceleração é constante e v = v0 + a · t.'],
-        d: ['Exemplo', 'Um carro a 20 m/s percorre 100 m em 5 s, pois 20 · 5 = 100.'],
-        p: ['Converta 72 km/h para m/s.', 'Calcule a velocidade média de quem percorre 150 m em 30 s.', 'Um móvel parte do repouso com a = 2 m/s². Qual é a velocidade após 4 s?'],
-        e: ['Um ciclista percorre 90 m em 15 s com velocidade constante. Qual é a sua velocidade?', 'v = Δs / Δt = 90 / 15 = 6 m/s.'] },
-      { t: ['A 1ª lei (inércia) afirma que um corpo em repouso ou em movimento retilíneo uniforme tende a manter esse estado, a menos que uma força resultante atue sobre ele.', 'A 2ª lei estabelece que a força resultante é igual ao produto da massa pela aceleração: F = m · a. A unidade de força é o newton (N).', 'A 3ª lei (ação e reação) diz que, quando um corpo exerce uma força sobre outro, o segundo exerce sobre o primeiro uma força de mesma intensidade e sentido oposto. Essas forças atuam em corpos diferentes.'],
-        d: ['Atenção', 'Ação e reação nunca se anulam, pois estão aplicadas em corpos diferentes.'],
-        p: ['Qual força resultante faz uma massa de 5 kg acelerar a 2 m/s²?', 'Por que os passageiros são lançados para frente quando o ônibus freia?', 'Dê um exemplo de par ação e reação.'],
-        e: ['Qual é a aceleração de um corpo de 4 kg sob força resultante de 20 N?', 'a = F / m = 20 / 4 = 5 m/s².'] },
-      { t: ['O trabalho de uma força constante, na direção do deslocamento, é o produto da força pelo deslocamento: W = F · d. Sua unidade é o joule (J).', 'A energia cinética depende da massa e da velocidade: Ec = m · v² / 2. A energia potencial gravitacional depende da altura: Ep = m · g · h, com g ≈ 10 m/s².', 'Na ausência de atrito, a energia mecânica (cinética mais potencial) se conserva. Um corpo que cai troca energia potencial por energia cinética.'],
-        d: ['Você sabia?', 'A energia não é criada nem destruída; ela se transforma de uma forma em outra.'],
-        p: ['Calcule o trabalho de uma força de 10 N que desloca um objeto por 3 m.', 'Calcule a energia cinética de um corpo de 2 kg a 3 m/s.', 'Calcule a energia potencial de um corpo de 2 kg a 5 m de altura (g = 10 m/s²).'],
-        e: ['Qual é a energia cinética de um corpo de 4 kg com velocidade de 5 m/s?', 'Ec = m · v² / 2 = 4 · 25 / 2 = 50 J.'] }
-    ] }
-};
 
 const GRADE = [[0, 1, 2, 3, 6], [1, 0, 4, 5, 1], [3, 6, 0, 1, 2], [4, 5, 1, 6, 0], [5, 2, 3, 4, 5]];
 const GRADE_PROF = { '0-0': '2º Ano B', '0-2': '1º Ano A', '1-1': '2º Ano B', '1-4': '3º Ano A', '2-3': '1º Ano A', '3-0': '3º Ano A', '3-2': '2º Ano B', '4-4': '1º Ano A' };
@@ -217,6 +107,111 @@ function seed() {
 
 let users, notas, mural, eventos, sid;
 function loadAll() { users = load('peusers', []); notas = load('penotas', {}); mural = load('pemural', []); eventos = load('peeventos', []); sid = load('pesessao', null); }
+
+
+/* ---------- IDENTIFICAÇÃO INSTITUCIONAL ----------
+   Dados persistentes vinculados ao ID do usuário. Não recria números ao entrar.
+   Documento interno demonstrativo; não é uma credencial validada por servidor.
+*/
+function garantirCarteirinhas() {
+  let mudou = false;
+  const numeros = new Set(users.filter(u => u.carteirinha?.numero).map(u => u.carteirinha.numero));
+  const hoje = new Date();
+  const data = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+  users.forEach(u => {
+    if (u.carteirinha?.numero) return;
+    let numero;
+    do {
+      const bytes = new Uint8Array(6);
+      window.crypto.getRandomValues(bytes);
+      numero = 'CH-' + Array.from(bytes, b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+    } while (numeros.has(numero));
+    numeros.add(numero);
+    u.carteirinha = { numero, emissao: data };
+    mudou = true;
+  });
+  if (mudou) save('peusers', users);
+}
+
+// QR de texto: usa os mesmos dados do cartão, sem links nem consulta externa.
+function textoCarteirinha(u) {
+  return ['COLÉGIO HORIZONTE','DADOS DA CARTEIRINHA','',
+    'Nome: '+u.nome, 'Perfil: '+PERFIS[u.perfil].rotulo,
+    u.perfil==='aluno'?'Turma: '+u.turma:u.perfil==='professor'?'Disciplina: '+u.disciplina:'Setor: Coordenação',
+    'Identificação: '+u.carteirinha.numero,'Emissão: '+dataBR(u.carteirinha.emissao),'',
+    'Dados para conferência. Sem validação externa.'].join('\n');
+}
+function inserirQRCarteirinha(alvo, u) {
+  if (!alvo) return false;
+  alvo.replaceChildren();
+  if (typeof window.QRCode !== 'function') {
+    alvo.textContent='QR indisponível. Recarregue com internet.';return false;
+  }
+  try {
+    new window.QRCode(alvo, {text:textoCarteirinha(u),width:408,height:408,
+      colorDark:'#000000',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel.M});
+    return true;
+  } catch(erro) { console.error('Erro ao gerar QR:',erro);alvo.textContent='Não foi possível gerar o QR.';return false; }
+}
+
+function cartaoHTML(u) {
+  const titulo = u.perfil === 'aluno' ? 'Carteira Estudantil' : 'Identificação Institucional';
+  const iniciais = u.nome.trim().split(/\s+/).filter(Boolean).slice(0,2).map(n => n[0]).join('');
+  return `<article class="school-id" aria-label="${titulo} de ${esc(u.nome)}">
+    <header class="school-id-head"><span class="school-id-brand">Colégio Horizonte</span><span>${titulo}</span></header>
+    <div class="school-id-layout"><div class="school-id-data"><div class="school-id-person"><div class="school-id-initials" aria-hidden="true">${esc(iniciais)}</div>
+    <div><h3>${esc(u.nome)}</h3><p>${esc(PERFIS[u.perfil].rotulo)}</p></div></div>
+    <dl class="school-id-fields"><div><dt>Identificação</dt><dd>${esc(u.carteirinha.numero)}</dd></div>
+    <div><dt>Emissão</dt><dd>${dataBR(u.carteirinha.emissao)}</dd></div>
+    <div><dt>${u.perfil === 'aluno' ? 'Turma' : u.perfil === 'professor' ? 'Disciplina' : 'Setor'}</dt>
+    <dd>${esc(u.perfil === 'aluno' ? u.turma : u.perfil === 'professor' ? u.disciplina : 'Coordenação')}</dd></div></dl></div>
+    <div class="school-id-qr-box"><div class="school-id-qr" role="img" aria-label="QR Code com os dados da carteirinha"></div>
+    <p>Escaneie para ler os dados</p></div></div>
+    <footer class="school-id-foot">Uso interno • Colégio Horizonte</footer>
+  </article>`;
+}
+let carteirinhaOcupada = false;
+async function baixarCarteirinha() {
+  if (carteirinhaOcupada) return;
+  const u = me();
+  if (!u) return;
+  if (!window.jspdf?.jsPDF || typeof window.html2canvas !== 'function' || typeof window.QRCode !== 'function') {
+    alert('As bibliotecas de PDF ou QR Code não carregaram. Verifique a internet e recarregue a página.'); return;
+  }
+  carteirinhaOcupada = true;
+  const btn = $('#baixarCarteirinha');
+  if (btn) { btn.disabled = true; btn.textContent = 'Gerando PDF...'; }
+  let palco;
+  try {
+    palco = document.createElement('div');
+    palco.className = 'school-id-export';
+    palco.innerHTML = cartaoHTML(u);
+    document.body.appendChild(palco);
+    if (!inserirQRCarteirinha(palco.querySelector('.school-id-qr'),u)) throw new Error('QR não gerado');
+    await document.fonts.ready;
+    // Aguarda a imagem gerada pelo QRCode.js antes de capturar o cartão.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await Promise.all([...palco.querySelectorAll('img')].filter(img=>img.getAttribute('src')).map(img=>img.decode().catch(()=>{})));
+    const alvo = palco.querySelector('.school-id');
+    const canvas = await window.html2canvas(alvo, {
+      scale: 3, backgroundColor: '#ffffff', logging: false,
+      onclone: doc => {
+        const el = doc.querySelector('.school-id-export');
+        if (el) { el.style.left = '0'; el.style.top = '0'; }
+      }
+    });
+    const pdf = new window.jspdf.jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    // Largura impressa 120 mm, proporção preservada. Fundo claro independente do tema.
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 22, 25, 120, 120 * canvas.height / canvas.width);
+    pdf.save('carteirinha-' + slug(u.nome) + '.pdf');
+  } catch (erro) {
+    console.error('Erro na carteirinha:', erro);
+    alert('Não foi possível gerar a carteirinha. Tente novamente.');
+  } finally {
+    palco?.remove(); carteirinhaOcupada = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Baixar carteirinha em PDF'; }
+  }
+}
 
 /* ---------- 3. CÁLCULOS ---------- */
 const reg = (id, d) => notas?.[id]?.[d] || { n: [null, null, null, null], f: 0 };
@@ -312,9 +307,7 @@ function closeModal() { $('#modal').hidden = true; readerKey = null; }
 $('#mClose').onclick = closeModal;
 $('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') closeModal(); });
 
-// pages: array de HTML, FONTE ÚNICA do visualizador e do PDF.
-// cabecalho: nome exibido no topo e no rodapé de cada folha do PDF (ex.: "Física").
-function reader(title, sub, pages, arquivo, cabecalho) {
+function reader(title, sub, pages, arquivo) {
   let i = 0;
   const draw = () => {
     $('#mBody').innerHTML = `<div class="page">${pages[i]}</div>`;
@@ -327,35 +320,34 @@ function reader(title, sub, pages, arquivo, cabecalho) {
   };
   const go = d => { i = Math.max(0, Math.min(pages.length - 1, i + d)); draw(); };
   readerKey = e => { if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
-  $('#mPdf').onclick = () => printPages(pages, arquivo, cabecalho);
+  $('#mPdf').onclick = () => baixarPdf(pages, arquivo);
   openModal(title, sub); draw();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); if (readerKey && !$('#modal').hidden) readerKey(e); });
 
-// E-book de 10 páginas, montado a partir de CONTEUDO[matéria]:
-// capa, sumário, introdução, 3 x (conceitos + prática guiada) e exercícios com gabarito.
 function ebookPages(d) {
-  const c = CONTEUDO[d.nome];
   const T = (h, body) => `<div class="page-text"><h3>${h}</h3>${body}</div>`;
-  const paras = arr => arr.map(t => `<p>${esc(t)}</p>`).join('');
   const pages = [
     `<div class="cover" style="--cv:${d.cor}"><span class="cover-tag">Edição escolar - Ensino Médio</span>
-      <div class="cover-ico"><svg viewBox="0 0 64 64"><path d="${d.icone}"/></svg></div><h3>${esc(d.nome)}</h3><hr class="rule"><p>${esc(d.livro)}</p><p class="cover-foot">${esc(d.autor)}</p></div>`,
-    T('Sumário', `<ul class="toc"><li>Introdução<i></i>3</li>${d.caps.map((n, k) => `<li>Capítulo ${k + 1} - ${esc(n)}<i></i>${4 + k * 2}</li>`).join('')}<li>Exercícios e gabarito<i></i>10</li></ul>
+      <div class="cover-ico"><svg viewBox="0 0 64 64"><path d="${d.icone}"/></svg></div><h3>${esc(d.livro)}</h3><hr class="rule"><p>${esc(d.nome)}</p><p class="cover-foot">${esc(d.autor)}</p></div>`,
+    T('Sumário', `<ul class="toc"><li>Introdução<i></i>3</li>${d.caps.map((c, k) => `<li>Capítulo ${k + 1} - ${esc(c)}<i></i>${4 + k * 2}</li>`).join('')}<li>Exercícios e gabarito<i></i>10</li></ul>
       <p class="muted">Este exemplar integra o acervo do Colégio Horizonte e acompanha o conteúdo programático do ano letivo.</p>`),
-    T('Introdução', paras(c.intro) + `<div class="callout"><b>Como estudar</b>Leia com lápis na mão, anote dúvidas e traga-as para a aula.</div>`)
+    T('Introdução', `<p>Este livro reúne os conteúdos essenciais de ${esc(d.nome)} para o ano letivo, organizados em três capítulos.</p>
+      <p>Cada capítulo possui uma página de conceitos e uma página de prática guiada. Ao final, há exercícios com gabarito comentado.</p>
+      <div class="callout"><b>Como estudar</b>Leia com lápis na mão, anote dúvidas e traga-as para a aula.</div>`)
   ];
-  d.caps.forEach((nome, k) => {
-    const cp = c.caps[k];
-    pages.push(T(`Capítulo ${k + 1} - ${esc(nome)}`, paras(cp.t) + `<div class="callout"><b>${esc(cp.d[0])}</b>${esc(cp.d[1])}</div>`));
-    pages.push(T(`Capítulo ${k + 1} - Prática guiada`, `<ol>${cp.p.map(q => `<li>${esc(q)}</li>`).join('')}</ol><p class="muted">Registre as respostas no caderno e compare com a turma.</p>`));
+  d.caps.forEach((c, k) => {
+    const teoria = k === 0
+      ? d.texto.map(t => `<p>${esc(t)}</p>`).join('') + `<div class="callout"><b>${esc(d.dest[0])}</b>${esc(d.dest[1])}</div>`
+      : `<p>Neste capítulo, estudamos <i>${esc(c)}</i> em ${esc(d.nome)}. Os conceitos são apresentados em ordem crescente de complexidade, relacionando teoria e situações do cotidiano.</p><p>Ao final da leitura, você deve ser capaz de definir os termos centrais, reconhecer exemplos e aplicar o conteúdo em atividades.</p>`;
+    pages.push(T(`Capítulo ${k + 1} - ${esc(c)}`, teoria));
+    pages.push(T(`Capítulo ${k + 1} - Prática guiada`, `<ol><li>Resuma em duas frases a ideia central de ${esc(c)}.</li><li>Cite um exemplo do seu dia a dia relacionado ao tema.</li><li>Elabore uma pergunta que você gostaria de discutir com o professor.</li></ol><p class="muted">Registre as respostas no caderno e compare com a turma.</p>`));
   });
-  pages.push(T('Exercícios e gabarito', `<ol>${c.caps.map(cp => `<li>${esc(cp.e[0])}</li>`).join('')}</ol>
-    <div class="callout"><b>Gabarito comentado</b>${c.caps.map((cp, i) => `<span style="display:block;margin-top:.3rem">${i + 1}. ${esc(cp.e[1])}</span>`).join('')}</div>`));
-  return pages; // 3 + 6 + 1 = 10
+  pages.push(T('Exercícios e gabarito', `<ol>${d.caps.map(c => `<li>Explique os principais conceitos de ${esc(c)} e dê um exemplo.</li>`).join('')}</ol>
+    <div class="callout"><b>Gabarito comentado</b>Espera-se, em cada item, uma definição correta do tema acompanhada de ao menos um exemplo coerente com o conteúdo do capítulo.</div>`));
+  return pages;
 }
 
-// Manual Didático do Docente: exatamente 20 páginas (capa + sumário + 18 tópicos)
 function teacherBookPages(disc) {
   const T = (h, b) => `<div class="page-text"><h3>${h}</h3>${b}</div>`;
   const temas = [
@@ -385,35 +377,54 @@ function teacherBookPages(disc) {
     T('Sumário', `<ul class="toc">${temas.map((t, k) => `<li>${t[0]}<i></i>${k + 3}</li>`).join('')}</ul>`)
   ];
   temas.forEach((t, k) => pages.push(T(`${k + 1}. ${t[0]}`, `<p>${t[1]}</p><div class="callout"><b>Orientação prática</b>Registre no diário as ações realizadas e revise o planejamento a cada bimestre.</div>`)));
-  return pages; // 2 + 18 = 20
+  return pages;
 }
 
-/* ---------- 8. PDF: mesma fonte do visualizador ---------- */
-// Cada elemento de 'pages' vira UMA folha A4 (22 mm de margem), com cabeçalho, rodapé e "Página n de N".
-// O CSS .print-book restyla o mesmo HTML do leitor: texto preto, 1 cor de destaque, fundo branco.
-function printPages(pages, arquivo, cabecalho) {
-  const n = pages.length, nome = esc(cabecalho || '');
+/* ---------- 8. PDF: IGUAL AO VISUALIZADOR (jsPDF + html2canvas) ---------- */
+let pdfBusy = false;
+async function baixarPdf(pages, arquivo) {
+  if (pdfBusy) return;
+  if (!window.jspdf || !window.html2canvas) {
+    alert('Não foi possível carregar as bibliotecas de PDF. Verifique sua conexão com a internet e recarregue a página.');
+    return;
+  }
+  pdfBusy = true;
+  const btn = $('#mPdf');
+  const antigo = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Gerando PDF...'; }
+  const n = pages.length;
   const box = document.createElement('div');
   box.className = 'print-book';
   box.innerHTML = pages.map((p, i) => i === 0
     ? `<section class="print-page"><div class="pp-body">${p}</div></section>`
-    : `<section class="print-page"><header class="pp-head"><span>Colégio Horizonte</span><span>${nome}</span></header>
+    : `<section class="print-page"><header class="pp-head"><span>Colégio Horizonte</span><span>${esc(arquivo.replace('livro-', '').replace(/-/g, ' '))}</span></header>
         <div class="pp-body">${p}</div>
-        <footer class="pp-foot"><span>${nome}</span><span>Página ${i + 1} de ${n}</span></footer></section>`).join('');
-  // Margem da folha = 0 só durante o livro (as margens de 22 mm estão no padding); remove cabeçalho/URL do navegador.
-  const pg = document.createElement('style');
-  pg.textContent = '@page { size: A4; margin: 0; }';
-  document.head.appendChild(pg);
+        <footer class="pp-foot"><span>${esc(arquivo.replace('livro-', '').replace(/-/g, ' '))}</span><span>Página ${i + 1} de ${n}</span></footer></section>`).join('');
   document.body.appendChild(box);
-  document.body.classList.add('printing-book');
-  fitPages(box);
-  const tituloAntigo = document.title;
-  document.title = arquivo;
-  const fim = () => { box.remove(); pg.remove(); document.body.classList.remove('printing-book'); document.title = tituloAntigo; window.removeEventListener('afterprint', fim); };
-  window.addEventListener('afterprint', fim);
-  requestAnimationFrame(() => window.print());
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const W = 210, H = 297;
+    for (let i = 0; i < n; i++) {
+      const folha = box.children[i];
+      if (btn) btn.textContent = `Gerando PDF... ${i + 1}/${n}`;
+      const canvas = await html2canvas(folha, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+      const img = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) pdf.addPage('a4', 'portrait');
+      pdf.addImage(img, 'JPEG', 0, 0, W, H, undefined, 'FAST');
+    }
+    pdf.save(arquivo + '.pdf');
+  } catch (err) {
+    console.error(err);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    box.remove();
+    pdfBusy = false;
+    if (btn) { btn.disabled = false; btn.textContent = antigo || 'Baixar PDF'; }
+  }
 }
-// Segurança: se algum texto passar da folha, reduz a fonte (mínimo 9 pt) até caber; nada é cortado.
 function fitPages(box) {
   $$('.pp-body', box).forEach(b => {
     let s = 11.5;
@@ -462,18 +473,24 @@ function doRegister(e) {
   const erro = validar(novo, users);
   if (erro) { authMsg = { erro }; return renderAuth(); }
   users.push({ id: uid(), nome: novo.nome.trim(), usuario: novo.usuario.trim(), senha: novo.senha, perfil: 'aluno', turma: novo.turma });
-  save('peusers', users); authMode = 'login'; authPerfil = 'aluno'; authMsg = { erro: '', ok: 'Conta criada. Entre com seu usuário e senha.' }; renderAuth();
+  garantirCarteirinhas(); save('peusers', users); authMode = 'login'; authPerfil = 'aluno'; authMsg = { erro: '', ok: 'Conta criada. Entre com seu usuário e senha.' }; renderAuth();
 }
 $('#logoutBtn').onclick = () => { sid = null; localStorage.removeItem('pesessao'); location.hash = ''; boot(); };
 
 /* ---------- 10. TELAS ---------- */
 const me = () => users.find(u => u.id === sid);
 const NAV = {
-  aluno: [['inicio', 'Início'], ['agenda', 'Horário de aulas'], ['boletim', 'Boletim'], ['disciplinas', 'Disciplinas'], ['calendario', 'Calendário'], ['mural', 'Mural']],
-  professor: [['agenda', 'Horário de aulas'], ['diario', 'Diário de classe'], ['livro', 'Livro do professor'], ['cartilha', 'Boas práticas'], ['calendario', 'Calendário'], ['mural', 'Mural']],
-  coordenador: [['turmas', 'Visão geral de turmas'], ['usuarios', 'Gestão de usuários'], ['mural', 'Mural'], ['calendario', 'Calendário']]
+  aluno: [['inicio', 'Início'], ['agenda', 'Horário de aulas'], ['boletim', 'Boletim'], ['disciplinas', 'Disciplinas'], ['calendario', 'Calendário'], ['mural', 'Mural'], ['carteirinha', 'Minha carteirinha']],
+  professor: [['agenda', 'Horário de aulas'], ['diario', 'Diário de classe'], ['livro', 'Livro do professor'], ['cartilha', 'Boas práticas'], ['calendario', 'Calendário'], ['mural', 'Mural'], ['carteirinha', 'Minha carteirinha']],
+  coordenador: [['turmas', 'Visão geral de turmas'], ['usuarios', 'Gestão de usuários'], ['mural', 'Mural'], ['calendario', 'Calendário'], ['carteirinha', 'Minha carteirinha']]
 };
 const VIEWS = {};
+VIEWS.carteirinha = u => `<div class="stack"><h2>Minha carteirinha</h2>
+  <p class="muted">Identificação vinculada ao seu cadastro. Documento interno demonstrativo, sem verificação externa.</p>
+  <div class="school-id-wrap">${cartaoHTML(u)}</div>
+  <button class="btn" id="baixarCarteirinha" type="button">Baixar carteirinha em PDF</button>
+  <p class="muted">O PDF utiliza fundo branco para impressão. Nenhuma senha é incluída.</p></div>`;
+
 
 VIEWS.inicio = u => {
   const r = resumo(u.id);
@@ -590,6 +607,10 @@ function render() {
   afterRender(r, u);
 }
 function afterRender(r, u) {
+  if (r === 'carteirinha') {
+    inserirQRCarteirinha($('#view .school-id-qr'),u);
+    $('#baixarCarteirinha').onclick = baixarCarteirinha;
+  }
   if (r === 'boletim') {
     const rs = resumo(u.id).rs;
     addChart(() => { const c = $('#cv'); if (c) barras(c, rs.map(x => ({ rot: NOME_CURTO(x.d.nome), val: x.c.media })), 10, 6, fmt); });
@@ -604,7 +625,7 @@ function afterRender(r, u) {
       if (c3) barras(c3, DISC.map(d => ({ rot: NOME_CURTO(d.nome), val: avg(al.map(a => calc(d, reg(a.id, d.nome)).media)) })), 10, 6, fmt);
     });
   }
-  if (r === 'livro') $('#openBook').onclick = () => reader('Manual Didático do Docente', 'Colégio Horizonte - 2026', teacherBookPages(u.disciplina), 'manual-didatico-docente', 'Manual Didático do Docente');
+  if (r === 'livro') $('#openBook').onclick = () => reader('Manual Didático do Docente', 'Colégio Horizonte - 2026', teacherBookPages(u.disciplina), 'manual-didatico-docente');
   if (r === 'diario') {
     $('#dTurma').onchange = e => { diarioTurma = e.target.value; render(); };
     $$('.num-in').forEach(i => i.addEventListener('input', () => salvarCampo(i, u)));
@@ -630,7 +651,7 @@ function afterRender(r, u) {
       if (erro) { userMsg = { erro, ok: '' }; return render(); }
       const novo = { id: uid(), nome: n.nome.trim(), usuario: n.usuario.trim(), senha: n.senha, perfil: userPerfil };
       if (userPerfil === 'aluno') novo.turma = $('#cTurma').value; else novo.disciplina = $('#cDisc').value;
-      users.push(novo); save('peusers', users);
+      users.push(novo); garantirCarteirinhas(); save('peusers', users);
       userMsg = { erro: '', ok: (userPerfil === 'aluno' ? 'Aluno' : 'Professor') + ' cadastrado. Já pode entrar no sistema.' }; render(); };
   }
 }
@@ -651,8 +672,8 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-go],[data-ebook],[data-pdf],[data-delm],[data-delev],[data-deluser]'); if (!t) return;
   const D = t.dataset;
   if (D.go) location.hash = D.go;
-  if (D.ebook) { const d = DISC[+D.ebook]; reader(d.livro, d.nome + ' - ' + d.autor, ebookPages(d), 'livro-' + slug(d.nome), d.nome); }
-  if (D.pdf) { const d = DISC[+D.pdf]; printPages(ebookPages(d), 'livro-' + slug(d.nome), d.nome); }
+  if (D.ebook) { const d = DISC[+D.ebook]; reader(d.livro, d.nome + ' - ' + d.autor, ebookPages(d), 'livro-' + slug(d.nome)); }
+  if (D.pdf) { const d = DISC[+D.pdf]; baixarPdf(ebookPages(d), 'livro-' + slug(d.nome)); }
   if (D.delm && confirm('Excluir este aviso?')) { mural = mural.filter(m => m.id !== D.delm); save('pemural', mural); render(); }
   if (D.delev && confirm('Excluir esta data?')) { eventos = eventos.filter(x => x.id !== D.delev); save('peeventos', eventos); render(); }
   if (D.deluser) {
@@ -664,10 +685,19 @@ window.addEventListener('hashchange', () => { if (me()) render(); });
 
 function boot() {
   loadAll();
+  garantirCarteirinhas();
   const logado = !!me();
   $('#authScreen').hidden = logado; $('#appScreen').hidden = !logado;
-  if (logado) render(); else { chartJobs = []; renderAuth(); }
+  document.body.classList.toggle('auth-active', !logado);
+  $('.site-footer').hidden = !logado;
+  if (logado) {
+    setTheme(load('petema', 'light'));   // restaura a escolha do usuário no painel
+    render();
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light'); // sem gravar: preserva a preferência
+    chartJobs = [];
+    renderAuth();
+  }
 }
 seed();
-setTheme(load('petema', 'light'));
 boot();

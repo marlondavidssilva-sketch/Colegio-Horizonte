@@ -185,15 +185,9 @@ tbody tr:nth-child(even) { background: var(--surface-2); }
   h2, h3 { color: #14284b !important; }
 }
 
-/* =====================================================================
-   LIVRO PARA IMPRESSÃO / PDF  (A4, 22 mm de margem, tema sempre claro)
-   As regras abaixo valem só para .print-book, que existe apenas durante
-   a impressão. Ficam fora de @media print de propósito: o JavaScript mede
-   o texto na tela (fitPages) com exatamente o mesmo layout da folha.
-   Cor de destaque única: azul-marinho #14284b. Resto: preto e cinza.
-   ===================================================================== */
+/* ===== Livro para PDF (jsPDF + html2canvas): A4, 22 mm de margem, tema sempre claro ===== */
 .print-book {
-  position: absolute; left: -10000px; top: 0; width: 210mm;           /* fora da tela, mas medível */
+  position: absolute; left: -10000px; top: 0; width: 210mm;
   background: #fff; color: #111;
   font-family: Georgia, "Times New Roman", serif; font-size: 11.5pt; line-height: 1.5;
   hyphens: auto;
@@ -201,7 +195,7 @@ tbody tr:nth-child(even) { background: var(--surface-2); }
   --heading: #14284b; --accent: #14284b; --on-bar: #111; --on-bar-muted: #444;
 }
 .print-page {
-  box-sizing: border-box; width: 210mm; height: 296mm; padding: 22mm;   /* 1 mm de folga evita página em branco */
+  box-sizing: border-box; width: 210mm; height: 296mm; padding: 22mm;
   display: flex; flex-direction: column; background: #fff;
   break-after: page; page-break-after: always; break-inside: avoid; overflow: hidden;
 }
@@ -228,7 +222,6 @@ tbody tr:nth-child(even) { background: var(--surface-2); }
 .print-book .toc li { margin-bottom: 3.5mm; }
 .print-book .toc li i { border-bottom: 1pt dotted #777; }
 
-/* Capa: fundo branco, linhas azul-marinho, ícone vetorial (sem perda de resolução) */
 .print-book .cover {
   background: none !important; color: #111; height: 100%; min-height: 0; padding: 0; border-radius: 0;
   justify-content: center; border-top: 3pt solid #14284b; border-bottom: 3pt solid #14284b;
@@ -245,4 +238,51 @@ tbody tr:nth-child(even) { background: var(--surface-2); }
   body.printing-book { background: #fff !important; color: #111 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body.printing-book > :not(.print-book) { display: none !important; }
   body.printing-book .print-book { position: static; left: auto; width: auto; }
+}
+
+/* ===== Carteirinha: tela e exportação ===== */
+.school-id-wrap { max-width: 620px; }
+.school-id { width:100%; box-sizing:border-box; padding:24px; border:1px solid var(--border); border-top:5px solid var(--accent); border-radius:12px; background:var(--surface); color:var(--text); box-shadow:var(--shadow); font-family:Arial, sans-serif; }
+.school-id-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; padding-bottom:16px; border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); }
+.school-id-brand { color:var(--heading); font-weight:700; font-size:16px; }
+.school-id-person { display:flex; align-items:center; gap:16px; margin:20px 0; }
+.school-id-person > div:last-child { min-width:0; }
+.school-id-person h3 { margin:0 0 6px; color:var(--heading); font-size:20px; overflow-wrap:anywhere; }
+.school-id-person p { font-size:14px; color:var(--muted); }
+.school-id-initials { display:flex; align-items:center; justify-content:center; width:64px; height:64px; flex-shrink:0; border:1px solid var(--border); border-radius:8px; color:var(--heading); font-size:24px; font-weight:700; }
+.school-id-fields { display:flex; flex-wrap:wrap; gap:16px 28px; margin:0; }
+.school-id-fields dt { color:var(--muted); font-size:11px; margin-bottom:5px; }
+.school-id-fields dd { margin:0; font-size:13px; overflow-wrap:anywhere; }
+.school-id-foot { border-top:1px solid var(--border); padding-top:12px; margin-top:20px; font-size:11px; color:var(--muted); }
+.school-id-export { position:absolute; left:-10000px; top:0; width:600px; --surface:#fff; --text:#1c2433; --muted:#4b5563; --heading:#14284b; --accent:#8a6a22; --border:#aab2bd; --shadow:none; }
+@media(max-width:480px) { .school-id-wrap .school-id { padding:16px; } .school-id-wrap .school-id-person h3 { font-size:17px; } }
+
+/* Única adição ao cartão original: QR de texto com margem branca. */
+.school-id-layout { display:flex; align-items:center; gap:18px; justify-content:space-between; }
+.school-id-data { flex:1; min-width:0; }
+.school-id-qr-box { flex:0 0 168px; text-align:center; margin-top:16px; }
+.school-id-qr { box-sizing:border-box; display:flex; align-items:center; justify-content:center; width:168px; min-height:168px; padding:16px; background:#fff; color:#111; font-size:11px; }
+.school-id-qr img, .school-id-qr canvas { width:136px!important; height:136px!important; max-width:none!important; }
+.school-id-qr-box p { font:10px/1.4 Arial,sans-serif; color:var(--muted); margin-top:6px; }
+@media(max-width:540px) {
+  .school-id-wrap .school-id-layout { flex-direction:column; align-items:stretch; gap:0; }
+  .school-id-wrap .school-id-qr-box { flex-basis:auto; align-self:center; }
+}
+
+/* ===== Logo oficial: login (completa) e painel (somente símbolo) ===== */
+.site-footer[hidden] { display:none !important; }
+body.auth-active { background:#eef1f6; color:#1c2433; color-scheme:light; }
+.auth-side {
+  display:flex; align-items:center; justify-content:center;
+  padding:3rem; background:linear-gradient(150deg,#14284b,#0e1d38);
+  border-right:4px solid #8a6a22;
+}
+.auth-school-logo { display:block; width:min(88%,560px); height:auto; }
+.topbar-logo { display:block; height:48px; width:auto; flex-shrink:0; }
+.topbar-id { gap:.9rem; }
+@media (max-width:800px) {
+  .auth { grid-template-columns:1fr; grid-template-rows:auto 1fr; }
+  .auth-side { padding:1.2rem; border-right:0; border-bottom:3px solid #8a6a22; }
+  .auth-school-logo { width:min(86%,320px); }
+  .topbar-logo { height:40px; }
 }
